@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SQL Skill Gym</title>
+<style>
+/* ============================================================
+   NOTION DARK MODE
+   ============================================================ */
+:root {
+  --bg: #191919;
+  --bg-hover: #2a2a2a;
+  --bg-secondary: #1f1f1f;
+  --border: #333333;
+  --border-light: #2a2a2a;
+  --text: #ffffffde;
+  --text-secondary: #ffffff8a;
+  --text-muted: #ffffff52;
+  --red: #e03e3e;
+  --green: #4caf7c;
+  --green-bg: #1a2e22;
+  --radius: 3px;
+  --radius-md: 6px;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+  --mono: "SF Mono", "Cascadia Code", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; font-family: var(--sans); background: var(--bg); color: var(--text);
+  line-height: 1.65; -webkit-font-smoothing: antialiased; font-size: 15px;
+}
+
+h1 { font-size: 40px; font-weight: 700; line-height: 1.2; letter-spacing: -0.5px; margin: 0; }
+h2 { font-size: 24px; font-weight: 650; line-height: 1.25; margin: 0; }
+h3 { font-size: 16px; font-weight: 600; line-height: 1.3; margin: 0; }
+h4 { font-size: 14px; font-weight: 600; margin: 0; }
+p { margin: 0; color: var(--text-secondary); line-height: 1.65; }
+
+.wrap { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+.section { padding: 48px 0; }
+.section-header { margin-bottom: 28px; }
+.section-header h2 { margin-bottom: 6px; }
+.section-header p { font-size: 14px; color: var(--text-muted); }
+
+/* Nav */
+.nav {
+  position: sticky; top: 0; z-index: 50; background: rgba(25,25,25,.9);
+  backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 46px; max-width: 900px; margin: 0 auto; padding: 0 20px;
+}
+.nav-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; cursor: pointer; }
+.nav-logo .icon {
+  width: 26px; height: 26px; border-radius: 5px; background: var(--text);
+  display: grid; place-items: center; color: #191919; font-size: 13px; font-weight: 700;
+}
+.nav-links { display: flex; gap: 2px; }
+.nav-links a {
+  padding: 5px 12px; border-radius: 3px; font-size: 13px; font-weight: 500;
+  color: var(--text-secondary); text-decoration: none; transition: .15s;
+}
+.nav-links a:hover { background: var(--bg-hover); color: var(--text); }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 4px;
+  padding: 6px 12px; cursor: pointer; font-weight: 550; font-size: 13px; font-family: var(--sans);
+  transition: .15s; line-height: 1.4;
+}
+.btn-primary { background: var(--text); color: #191919; }
+.btn-primary:hover { background: #d0d0d0; }
+.btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.btn-outline:hover { background: var(--bg-hover); }
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-hover); color: var(--text); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-danger { background: transparent; color: var(--red); }
+.btn-danger:hover { background: rgba(224,62,62,.1); }
+
+/* Search */
+.search-hero { padding: 28px 0 8px; }
+.search-hero .search-box {
+  display: flex; align-items: center; gap: 10px;
+  border: 1px solid var(--border); border-radius: 6px; padding: 10px 16px;
+  background: var(--bg-secondary); transition: .15s;
+}
+.search-hero .search-box:focus-within { border-color: var(--text-secondary); }
+.search-hero input {
+  flex: 1; border: 0; outline: none; font-size: 20px; font-family: var(--sans);
+  color: var(--text); background: transparent;
+}
+.search-hero input::placeholder { color: var(--text-muted); }
+.search-hero .search-icon { font-size: 20px; color: var(--text-muted); flex: 0 0 auto; }
+
+.search-results { margin-top: 10px; display: none; }
+.search-results.active { display: block; }
+.search-result-item {
+  padding: 10px 14px; border-radius: 4px; cursor: pointer; transition: .12s;
+  margin-bottom: 4px; border: 1px solid transparent;
+}
+.search-result-item:hover { background: var(--bg-secondary); border-color: var(--border); }
+.search-result-item .sr-title { font-weight: 600; font-size: 14px; }
+.search-result-item .sr-syntax {
+  font-family: var(--mono); font-size: 12px; color: var(--text-secondary);
+  background: var(--bg); padding: 6px 10px; border-radius: 4px;
+  margin: 6px 0; white-space: pre-wrap; border: 1px solid var(--border-light);
+}
+.search-result-item .sr-desc { font-size: 13px; color: var(--text-muted); }
+.search-result-item .sr-tags { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+.sr-tag {
+  font-size: 11px; padding: 2px 7px; border-radius: 3px; font-weight: 500;
+  background: var(--bg-secondary); color: var(--text-muted);
+}
+.no-results { padding: 24px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
+/* Cards */
+.card {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 20px; transition: .12s;
+}
+.card:hover { border-color: #3d3d3d; }
+
+/* Industry grid */
+.industry-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.industry-card {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 18px 14px; cursor: pointer;
+  transition: .12s; text-align: center;
+}
+.industry-card:hover { background: var(--bg-hover); }
+.industry-card.active { border-color: var(--text-secondary); }
+.industry-card .ic-emoji { font-size: 28px; margin-bottom: 6px; display: block; }
+.industry-card .ic-name { font-weight: 600; font-size: 14px; }
+.industry-card .ic-domain { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* Evolution */
+.evo-panel {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 24px;
+}
+.evo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.evo-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.evo-stage-card {
+  text-align: center; padding: 14px 8px; border-radius: var(--radius-md);
+  border: 1px solid var(--border); transition: .12s; cursor: pointer;
+}
+.evo-stage-card:hover { background: var(--bg-hover); }
+.evo-stage-card.current { border-color: var(--text-secondary); }
+.evo-stage-card.achieved { background: var(--green-bg); border-color: #2a4a3a; }
+.evo-stage-card .evo-check { display: none; font-size: 11px; color: var(--green); font-weight: 700; }
+.evo-stage-card.achieved .evo-check { display: block; }
+.evo-stage-card .evo-label { font-size: 10px; color: var(--text-muted); font-weight: 500; margin-top: 6px; text-transform: uppercase; letter-spacing: .3px; }
+.evo-stage-card .evo-title { font-size: 12px; font-weight: 600; margin-top: 2px; }
+
+/* Stats */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+.stat-card {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 14px 16px;
+}
+.stat-card .stat-value { font-size: 22px; font-weight: 700; }
+.stat-card .stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+.stat-card .stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+.progress-ring-wrap { display: flex; gap: 20px; align-items: center; }
+.progress-ring {
+  width: 100px; height: 100px; border-radius: 50%; flex: 0 0 auto;
+  display: grid; place-items: center; position: relative;
+}
+.progress-ring::after { content: ''; position: absolute; inset: 9px; background: var(--bg-secondary); border-radius: 50%; }
+.progress-ring span { position: relative; z-index: 1; font-size: 20px; font-weight: 700; }
+
+.bar-list { display: grid; gap: 8px; }
+.bar-row { display: grid; grid-template-columns: 85px 1fr 45px; gap: 8px; align-items: center; font-size: 12px; color: var(--text-secondary); }
+.bar-track { height: 6px; background: var(--bg-hover); border-radius: 999px; overflow: hidden; cursor: pointer; }
+.bar-track:hover { background: var(--border); }
+.bar-fill { height: 100%; border-radius: 999px; transition: .6s; }
+.bar-fill.light { background: var(--text-secondary); }
+
+/* Plan table */
+.plan-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.plan-table th, .plan-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border-light); }
+.plan-table th { font-size: 11px; color: var(--text-muted); font-weight: 550; }
+.plan-table td { color: var(--text-secondary); }
+.plan-table tr:hover td { background: var(--bg-hover); }
+.plan-table td:first-child { font-weight: 600; color: var(--text); }
+
+/* Exercises */
+.exercise-filter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.exercise-filter input, .exercise-filter select {
+  border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px;
+  font-size: 13px; font-family: var(--sans); outline: none; background: var(--bg-secondary);
+  color: var(--text);
+}
+.exercise-filter input:focus, .exercise-filter select:focus { border-color: var(--text-secondary); }
+.exercise-card {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 16px; margin-bottom: 6px; transition: .12s;
+}
+.exercise-card:hover { border-color: #3d3d3d; }
+.exercise-card.done { background: var(--green-bg); border-color: #2a4a3a; }
+.exercise-card h4 { margin-bottom: 4px; font-size: 14px; }
+.exercise-card .schema {
+  font-family: var(--mono); font-size: 12px; background: var(--bg);
+  border: 1px solid var(--border-light); border-radius: 4px; padding: 8px 12px;
+  margin: 8px 0; white-space: pre-wrap; color: var(--text-secondary);
+}
+.exercise-card textarea {
+  width: 100%; min-height: 76px; border: 1px solid var(--border); border-radius: 4px;
+  padding: 8px 12px; font-family: var(--mono); font-size: 13px; line-height: 1.5;
+  outline: none; resize: vertical; background: var(--bg); color: var(--text);
+}
+.exercise-card textarea:focus { border-color: var(--text-secondary); }
+.exercise-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; align-items: center; }
+.exercise-actions .feedback { font-size: 12px; font-weight: 600; }
+.exercise-actions .feedback.ok { color: var(--green); }
+.exercise-actions .feedback.warn { color: #e0a050; }
+details { margin-top: 6px; border: 1px solid var(--border-light); border-radius: 4px; padding: 8px 12px; }
+details summary { cursor: pointer; font-weight: 550; font-size: 13px; outline: none; }
+details pre { white-space: pre-wrap; margin: 6px 0 0; font-family: var(--mono); font-size: 12px; color: var(--text-secondary); }
+
+/* Floating buddy */
+.float-buddy {
+  position: fixed; right: 18px; bottom: 70px; z-index: 60;
+  width: 56px; height: 56px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--bg-secondary); cursor: pointer; display: grid; place-items: center;
+  transition: .12s;
+}
+.float-buddy:hover { background: var(--bg-hover); }
+.float-buddy .buddy-level {
+  position: absolute; top: -6px; right: -6px; background: var(--text); color: #191919;
+  font-weight: 700; font-size: 9px; border-radius: 4px; padding: 2px 5px;
+}
+
+.float-panel {
+  position: fixed; right: 18px; bottom: 140px; z-index: 59;
+  width: 300px; background: var(--bg-secondary); border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0,0,0,.5); border: 1px solid var(--border);
+  overflow: hidden; opacity: 0; pointer-events: none;
+  transform: translateY(6px); transition: .15s;
+}
+.float-panel.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.float-panel-head { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.float-panel-body { padding: 12px 14px; }
+.float-panel-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0 10px; }
+.fps { text-align: center; padding: 8px 4px; border: 1px solid var(--border-light); border-radius: 4px; font-size: 12px; }
+.fps b { display: block; font-size: 16px; }
+.fps span { font-size: 10px; color: var(--text-muted); }
+
+/* Toast */
+.toast {
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 100;
+  background: var(--text); color: #191919; padding: 8px 18px; border-radius: 6px;
+  font-weight: 550; font-size: 13px; opacity: 0; transition: .2s; pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+.scroll-top {
+  position: fixed; right: 18px; bottom: 20px; z-index: 60;
+  width: 36px; height: 36px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--bg-secondary); cursor: pointer; display: grid; place-items: center;
+  color: var(--text-muted); font-size: 16px; opacity: 0; pointer-events: none; transition: .15s;
+}
+.scroll-top.visible { opacity: 1; pointer-events: auto; }
+.scroll-top:hover { background: var(--bg-hover); color: var(--text); }
+
+footer {
+  text-align: center; padding: 32px 0 40px; color: var(--text-muted);
+  font-size: 12px; border-top: 1px solid var(--border); margin-top: 20px;
+}
+
+@media (max-width: 900px) {
+  .industry-grid { grid-template-columns: repeat(2, 1fr); }
+  .evo-strip { grid-template-columns: repeat(3, 1fr); }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .nav-links { display: none; }
+}
+@media (max-width: 600px) {
+  .industry-grid, .stats-row { grid-template-columns: 1fr 1fr; }
+  .evo-strip { grid-template-columns: repeat(2, 1fr); }
+  .section { padding: 32px 0; }
+  h1 { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})"><div class="icon">▹</div>SQL Skill Gym</div>
+    <div class="nav-links">
+      <a href="#search">搜索</a><a href="#scenario">场景</a><a href="#evolution">进化</a>
+      <a href="#dashboard">看板</a><a href="#plan">规划</a><a href="#exercises">训练</a>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<section id="search" class="search-hero">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="sqlSearch" placeholder="搜索 SQL 语法… 例如: 窗口函数、JOIN、留存、环比" autocomplete="off">
+    <span style="font-size:12px;color:var(--text-muted);white-space:nowrap" id="searchHint">48 条语法</span>
+  </div>
+  <div class="search-results" id="searchResults"></div>
+</section>
+
+<header style="padding:20px 0 8px">
+  <h1>从 SELECT 到业务分析，<br>把 SQL 练成能落地的硬技能。</h1>
+  <p style="margin-top:8px;font-size:15px;">选一个行业场景，你的角色会陪你走完 6 个阶段。上方搜索栏随时查不熟悉的 SQL 语法。</p>
+</header>
+
+<section id="scenario" class="section">
+  <div class="section-header"><h2>选择行业场景</h2><p>8 个真实业务场景，每个有专属角色。选定后角色随训练进度从新手进化到大师。</p></div>
+  <div class="industry-grid" id="industryGrid"></div>
+</section>
+
+<section id="evolution" class="section">
+  <div class="section-header"><h2>角色进化</h2><p id="evoDesc">选择场景后，这里展示 6 个阶段的完整进化。</p></div>
+  <div class="evo-panel">
+    <div class="evo-header"><h3 id="evoTitle">👆 请先选择一个行业场景</h3><span style="font-size:12px;color:var(--text-muted)" id="evoBadge">6 阶段</span></div>
+    <div class="evo-strip" id="evoStrip"></div>
+    <div style="margin-top:14px;padding:10px 14px;background:var(--bg);border-radius:4px;color:var(--text-secondary);font-size:13px;border:1px solid var(--border-light);" id="evoStory"></div>
+  </div>
+</section>
+
+<section id="dashboard" class="section">
+  <div class="section-header"><h2>训练看板</h2><p>设置每日练习时长和每周天数，系统自动生成计划。</p></div>
+  <div class="card" style="margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end">
+      <div><label style="display:block;font-weight:550;font-size:11px;color:var(--text-muted);margin-bottom:4px">每日分钟</label><input id="dailyMinutes" type="number" min="20" step="5" value="60" style="width:100%;border:1px solid var(--border);border-radius:4px;padding:7px 10px;font-size:13px;outline:none;background:var(--bg);color:var(--text);font-family:var(--sans)" onfocus="this.select()"></div>
+      <div><label style="display:block;font-weight:550;font-size:11px;color:var(--text-muted);margin-bottom:4px">每周天数</label><input id="daysPerWeek" type="number" min="1" max="7" step="1" value="5" style="width:100%;border:1px solid var(--border);border-radius:4px;padding:7px 10px;font-size:13px;outline:none;background:var(--bg);color:var(--text);font-family:var(--sans)" onfocus="this.select()"></div>
+      <div><label style="display:block;font-weight:550;font-size:11px;color:var(--text-muted);margin-bottom:4px">开始日期</label><input id="startDate" type="date" style="width:100%;border:1px solid var(--border);border-radius:4px;padding:7px 10px;font-size:13px;outline:none;background:var(--bg);color:var(--text);font-family:var(--sans)"></div>
+      <button class="btn btn-outline" id="generateBtn" style="justify-content:center">更新计划</button>
+    </div>
+  </div>
+  <div class="stats-row" id="statCards"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div class="card">
+      <h4 style="margin-bottom:12px">总进度</h4>
+      <div class="progress-ring-wrap">
+        <div class="progress-ring" id="progressRing"><span id="progressText">0%</span></div>
+        <div style="flex:1"><p style="font-size:13px;">完成训练后点击标记完成。</p>
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <button class="btn btn-ghost btn-sm" id="exportBtn">导出进度</button>
+            <button class="btn btn-danger btn-sm" id="resetBtn">重置</button>
+          </div>
+        </div>
+      </div>
+      <div class="bar-list" id="stageBars" style="margin-top:12px"></div>
+    </div>
+    <div class="card">
+      <h4 style="margin-bottom:12px">本周负载</h4>
+      <div id="heatmap" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:10px"></div>
+      <p style="font-size:12px;color:var(--text-muted)">📐 10% 复习 · 20% 读题 · 55% 写 SQL · 15% 复盘</p>
+    </div>
+  </div>
+</section>
+
+<section id="plan" class="section">
+  <div class="section-header"><h2>周期规划</h2><p>根据周时长自动分配 6 个阶段的练习周数。</p></div>
+  <div class="card" style="overflow:auto"><table class="plan-table" id="planTable"></table></div>
+</section>
+
+<section id="exercises" class="section">
+  <div class="section-header"><h2>分级训练</h2><p>48 道核心题，6 大阶段。搜索栏可以随时查阅不熟悉的语法。</p></div>
+  <div class="card">
+    <div class="exercise-filter">
+      <input type="text" id="searchInput" placeholder="🔍 搜索题目…" style="min-width:200px">
+      <select id="stageFilter"><option value="all">全部阶段</option></select>
+      <select id="difficultyFilter"><option value="all">全部难度</option><option>简单</option><option>中等</option><option>困难</option><option>项目</option></select>
+      <button class="btn btn-ghost btn-sm" id="expandAll">展开</button>
+      <button class="btn btn-ghost btn-sm" id="collapseAll">折叠</button>
+    </div>
+    <div id="stageGrid"></div>
+  </div>
+</section>
+
+</main>
+
+<footer>SQL Skill Gym · Ctrl+K 打开搜索</footer>
+
+<div class="toast" id="toast"></div>
+
+<button class="float-buddy" id="floatBuddy" title="角色面板">
+  <span class="buddy-level" id="buddyLevel">Lv.1</span>
+  <div id="buddyAvatarMini"></div>
+</button>
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="回到顶部">↑</button>
+<aside class="float-panel" id="floatPanel">
+  <div class="float-panel-head">
+    <div id="panelAvatar"></div>
+    <div style="flex:1"><h4 id="panelName">SQL 入门者</h4><p style="font-size:11px;color:var(--text-muted)" id="panelSubtitle">新手</p></div>
+    <button style="width:24px;height:24px;border-radius:4px;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-weight:600;font-size:14px;color:var(--text);line-height:1" id="panelClose">×</button>
+  </div>
+  <div class="float-panel-body">
+    <div style="padding:8px 12px;background:var(--bg);border-radius:4px;font-size:12px;color:var(--text-secondary);border:1px solid var(--border-light);margin-bottom:8px" id="panelSpeech"></div>
+    <div class="float-panel-stats">
+      <div class="fps"><b id="panelLv">1</b><span>等级</span></div>
+      <div class="fps"><b id="panelPts">0</b><span>积分</span></div>
+      <div class="fps"><b id="panelDone">0</b><span>题数</span></div>
+    </div>
+    <div class="bar-track"><div class="bar-fill light" id="panelFill" style="width:0%"></div></div>
+  </div>
+</aside>
+
+<script>
+// ============================================================
+// NOTION-STYLE FLAT PEOPLE AVATAR
+// Round face, skin tone, flat hair, dot eyes, 2px black lines
+// ============================================================
+function genAvatar(charId, stage){
+  const V=96, CX=48, CY=40;
+  const s=Math.max(1,Math.min(6,stage));
+  const SW='2';
+
+  // Skin
+  let p=`<circle cx="${CX}" cy="${CY}" r="22" fill="#f2c9a0" stroke="#1a1a1a" stroke-width="${SW}"/>`;
+
+  // Rosy cheeks
+  p+=`<ellipse cx="36" cy="44" rx="5" ry="3" fill="#f0a0a0" opacity=".3"/><ellipse cx="60" cy="44" rx="5" ry="3" fill="#f0a0a0" opacity=".3"/>`;
+
+  // Eyes — simple dots
+  p+=`<circle cx="40" cy="36" r="3" fill="#1a1a1a"/><circle cx="56" cy="36" r="3" fill="#1a1a1a"/>`;
+  p+=`<circle cx="39" cy="35" r="1.2" fill="#fff"/><circle cx="55" cy="35" r="1.2" fill="#fff"/>`;
+
+  // Mouth — tiny smile
+  const smiles=['M45,48 Q48,45 51,48','M44,47 Q48,50 52,47','M44,46 Q48,50 52,46','M44,45 Q48,49 52,45','M43,45 Q48,49 53,45','M43,44 Q48,49 53,44'];
+  p+=`<path d="${smiles[s-1]}" fill="none" stroke="#1a1a1a" stroke-width="1.6" stroke-linecap="round"/>`;
+
+  // ====== HAIR — 8 styles with flat colors ======
+  const hairColor = {
+    internet:'#2d2d3f', ecom:'#5c3826', finance:'#1a1a1a', logistics:'#4a3528',
+    content:'#e879a0', saas:'#1e2d3d', edu:'#6b4c20', local:'#3a3a4a'
+  };
+  const hc = hairColor[charId]||'#2d2d3f';
+
+  const hair = {
+    internet: `<ellipse cx="${CX}" cy="26" rx="26" ry="16" fill="${hc}" stroke="#1a1a1a" stroke-width="${SW}"/>
+               <path d="M24,34 Q24,18 36,12 Q48,8 60,12 Q72,18 72,34" fill="${hc}" stroke="#1a1a1a" stroke-width="${SW}"/>
+               <rect x="34" y="6" width="6" height="14" rx="3" fill="${hc}" stroke="#1a1a1a" stroke-width="1.5" transform="rotate(-10,37,13)"/>`,
+    ecom:     `<ellipse cx="${CX}" cy="26" rx="26" ry="17" fill="${hc}" stroke="#1a1a1a" stroke-width="${SW}"/>
+               <path d="M22,36 Q20,18 36,10 Q48,6 60,10 Q76,18 74,36" fill="${hc}" stroke="#1a1a1a" stroke-width="${SW}"/>`,
+    finance:  `<path d="M24,36 Q24,20 48,16 Q72,20 72,36" fill="${hc}" stroke="#1a1a1a" stroke-width="${SW}"/>
+               <rect x="24" y="16" width="48" height="10" rx="4" fill="${hc}" stroke="#1a1a1a" stroke-width="1.5"/>`,
+    logistics:`<ellipse cx="${CX}" cy="26" rx="25" ry="15" fill="${hc}" stroke="#1a1a1a" stroke-width="${SW}"/>
+               <rect x="26" y="8" width="44" height="8" rx="3" fill="${hc}" stroke="#1a1a1a" stroke-width="1.8"/>`,
+    content:  `<ellipse cx="${CX}" cy="24" rx="27" ry="18" fill="${hc}" stroke="#1a1a1a" stroke-width="${SW}"/>
+               <circle cx="36" cy="12" r="7" fill="${hc}" stroke="#1a1a1a" stroke-width="1.5"/>
+               <circle cx="54" cy="10" r="5" fill="${hc}" stroke="#1a1a1a" stroke-width="1.2"/>`,
+    saas:     `<ellipse cx="${CX}" cy="26" rx="25" ry="16" fill="${hc}" stroke="#1a1a1a" stroke-width="${SW}"/>
+               <path d="M23,28 Q48,18 73,28" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>`,
+    edu:      `<ellipse cx="${CX}" cy="24" rx="28" ry="19" fill="${hc}" stroke="#1a1a1a" stroke-width="${SW}"/>
+               <path d="M20,36 Q22,14 48,8 Q74,14 76,36" fill="${hc}" stroke="#1a1a1a" stroke-width="${SW}"/>`,
+    local:    `<ellipse cx="${CX}" cy="26" rx="25" ry="14" fill="${hc}" stroke="#1a1a1a" stroke-width="${SW}"/>
+               <rect x="28" y="10" width="40" height="8" rx="3" fill="${hc}" stroke="#1a1a1a" stroke-width="1.8"/>
+               <line x1="28" y1="10" x2="44" y2="8" stroke="#1a1a1a" stroke-width="1.2"/>`
+  };
+  p+=hair[charId]||hair['internet'];
+
+  // ====== ACCESSORIES ======
+  const acc = {
+    internet: `<rect x="34" y="33" width="12" height="9" rx="0" fill="none" stroke="#1a1a1a" stroke-width="1.8"/><rect x="50" y="33" width="12" height="9" rx="0" fill="none" stroke="#1a1a1a" stroke-width="1.8"/><line x1="46" y1="37" x2="50" y2="37" stroke="#1a1a1a" stroke-width="1.5"/>`,
+    edu:      `<circle cx="38" cy="35" r="10" fill="none" stroke="#1a1a1a" stroke-width="1.6"/><circle cx="58" cy="35" r="10" fill="none" stroke="#1a1a1a" stroke-width="1.6"/><line x1="48" y1="35" x2="48" y2="35" stroke="#1a1a1a" stroke-width="1.5"/>`,
+  };
+  if(acc[charId]) p+=acc[charId];
+
+  // ====== BODY (stage 3+) ======
+  if(s>=3){
+    const bodyColor = {
+      internet:'#4c4c6b', ecom:'#8b3a4a', finance:'#2d2d2d', logistics:'#2d5a3d',
+      content:'#8b3a7a', saas:'#1a4a5a', edu:'#8b6b20', local:'#6b3a1a'
+    };
+    const bc = bodyColor[charId]||'#4c4c6b';
+    const body = {
+      internet: `<rect x="30" y="60" width="36" height="22" rx="6" fill="${bc}" stroke="#1a1a1a" stroke-width="${SW}"/>`,
+      ecom:     `<rect x="30" y="60" width="36" height="22" rx="6" fill="${bc}" stroke="#1a1a1a" stroke-width="${SW}"/><line x1="38" y1="60" x2="38" y2="70" stroke="#1a1a1a" stroke-width="1" opacity=".4"/>`,
+      finance:  `<rect x="30" y="58" width="36" height="26" rx="5" fill="${bc}" stroke="#1a1a1a" stroke-width="${SW}"/><path d="M42,58 L42,74 M54,58 L54,74" stroke="#1a1a1a" stroke-width="0.8" opacity=".3"/>`,
+      logistics:`<rect x="30" y="60" width="36" height="22" rx="6" fill="${bc}" stroke="#1a1a1a" stroke-width="${SW}"/><line x1="30" y1="70" x2="66" y2="70" stroke="#1a1a1a" stroke-width="1" opacity=".4"/>`,
+      content:  `<rect x="30" y="60" width="36" height="22" rx="8" fill="${bc}" stroke="#1a1a1a" stroke-width="${SW}"/>`,
+      saas:     `<rect x="30" y="60" width="36" height="22" rx="5" fill="${bc}" stroke="#1a1a1a" stroke-width="${SW}"/><rect x="34" y="62" width="12" height="5" rx="2" fill="none" stroke="#1a1a1a" stroke-width="1"/>`,
+      edu:      `<rect x="30" y="60" width="36" height="22" rx="6" fill="${bc}" stroke="#1a1a1a" stroke-width="${SW}"/><line x1="42" y1="60" x2="42" y2="82" stroke="#1a1a1a" stroke-width="1.5"/>`,
+      local:    `<rect x="30" y="60" width="36" height="22" rx="6" fill="${bc}" stroke="#1a1a1a" stroke-width="${SW}"/><circle cx="48" cy="71" r="4" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>`
+    };
+    p+=body[charId]||body['internet'];
+  }
+
+  // ====== PROP (stage 4+) ======
+  if(s>=4){
+    const props = {
+      internet:  `<rect x="70" y="56" width="16" height="12" rx="2" fill="#fafafa" stroke="#1a1a1a" stroke-width="1.5"/><line x1="74" y1="60" x2="82" y2="60" stroke="#1a1a1a" stroke-width="0.8"/>`,
+      ecom:      `<rect x="72" y="56" width="14" height="16" rx="3" fill="#fafafa" stroke="#1a1a1a" stroke-width="1.5"/><path d="M76,62 L79,65 L82,62" fill="none" stroke="#1a1a1a" stroke-width="1"/>`,
+      finance:   `<path d="M70,54 L82,54 L82,68 L76,64 L70,68 Z" fill="#fafafa" stroke="#1a1a1a" stroke-width="1.5"/>`,
+      logistics: `<rect x="70" y="58" width="18" height="12" rx="2" fill="#fafafa" stroke="#1a1a1a" stroke-width="1.5"/><text x="79" y="67" text-anchor="middle" font-size="8" fill="#1a1a1a" font-weight="700">📦</text>`,
+      content:   `<polygon points="72,54 86,62 72,70" fill="#fafafa" stroke="#1a1a1a" stroke-width="1.5"/><circle cx="79" cy="62" r="2.5" fill="none" stroke="#1a1a1a" stroke-width="1"/>`,
+      saas:      `<path d="M70,60 Q78,54 88,60" fill="none" stroke="#1a1a1a" stroke-width="1.8"/><line x1="70" y1="60" x2="70" y2="70" stroke="#1a1a1a" stroke-width="1.5"/><circle cx="70" cy="70" r="2.5" fill="none" stroke="#1a1a1a" stroke-width="1"/>`,
+      edu:       `<rect x="70" y="56" width="11" height="16" rx="2" fill="#fafafa" stroke="#1a1a1a" stroke-width="1.5"/><line x1="73" y1="61" x2="78" y2="61" stroke="#1a1a1a" stroke-width="0.8"/><line x1="73" y1="64" x2="78" y2="64" stroke="#1a1a1a" stroke-width="0.8"/>`,
+      local:     `<circle cx="78" cy="58" r="6" fill="#fafafa" stroke="#1a1a1a" stroke-width="1.5"/><circle cx="78" cy="58" r="2" fill="#1a1a1a"/><line x1="78" y1="64" x2="78" y2="74" stroke="#1a1a1a" stroke-width="1.5"/>`
+    };
+    p+=props[charId]||'';
+  }
+
+  // ====== STAGE 5 — detail ring ======
+  if(s>=5){
+    p+=`<circle cx="${CX}" cy="${CY}" r="26" fill="none" stroke="#1a1a1a" stroke-width="0.8" stroke-dasharray="3 5" opacity=".3"/>`;
+  }
+
+  // ====== STAGE 6 — crown ======
+  if(s>=6){
+    p+=`<circle cx="${CX}" cy="${CY}" r="30" fill="none" stroke="#1a1a1a" stroke-width="0.8" stroke-dasharray="4 6" opacity=".25"/>`;
+    p+=`<polygon points="40,12 37,19 43,19" fill="none" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="48,10 45,19 51,19" fill="none" stroke="#1a1a1a" stroke-width="1.5"/><polygon points="56,12 53,19 59,19" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>`;
+    p+=`<line x1="37" y1="19" x2="59" y2="19" stroke="#1a1a1a" stroke-width="1.2"/>`;
+  }
+
+  return `<svg viewBox="0 0 ${V} ${V}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">${p}</svg>`;
+}
+
+// ============================================================
+// SQL KNOWLEDGE BASE
+// ============================================================
+const sqlKnowledge = [
+  {kw:'SELECT',title:'SELECT — 查询字段',syntax:'SELECT column1, column2\nFROM table_name;',desc:'从表中选择指定列。用 * 代表所有列，但生产环境建议明确列出字段名。',tags:['基础','查询'],category:'基础语法'},
+  {kw:'WHERE',title:'WHERE — 条件过滤',syntax:'SELECT *\nFROM table_name\nWHERE condition;',desc:'添加过滤条件。支持 =, <, >, <=, >=, <>, != 以及 AND, OR, NOT。',tags:['基础','过滤'],category:'基础语法'},
+  {kw:'DISTINCT',title:'DISTINCT — 去重',syntax:'SELECT DISTINCT column\nFROM table_name;',desc:'返回唯一不同的值。作用于所有选择的列组合。',tags:['基础','去重'],category:'基础语法'},
+  {kw:'ORDER BY',title:'ORDER BY — 排序',syntax:'SELECT *\nFROM table_name\nORDER BY column1 ASC, column2 DESC;',desc:'对结果集排序。ASC 升序（默认），DESC 降序。',tags:['基础','排序'],category:'基础语法'},
+  {kw:'LIMIT',title:'LIMIT — 限制行数',syntax:'SELECT *\nFROM table_name\nLIMIT 10;',desc:'限制返回的行数。MySQL/PostgreSQL 用 LIMIT。',tags:['基础','限制'],category:'基础语法'},
+  {kw:'LIKE',title:'LIKE — 模糊匹配',syntax:"SELECT *\nFROM table_name\nWHERE column LIKE '%pattern%';",desc:'WHERE 中进行模式匹配。% 匹配任意序列，_ 匹配单个字符。',tags:['基础','字符串'],category:'基础语法'},
+  {kw:'BETWEEN',title:'BETWEEN — 范围查询',syntax:'SELECT *\nFROM table_name\nWHERE column BETWEEN value1 AND value2;',desc:'选取介于两个值之间的数据，包含边界。',tags:['基础','范围'],category:'基础语法'},
+  {kw:'IN',title:'IN — 集合匹配',syntax:"SELECT *\nFROM table_name\nWHERE column IN ('a','b','c');",desc:'检查列值是否在指定列表中。',tags:['基础','集合'],category:'基础语法'},
+  {kw:'CASE WHEN',title:'CASE WHEN — 条件分支',syntax:'SELECT\n  CASE WHEN cond1 THEN r1\n       WHEN cond2 THEN r2\n       ELSE default_result\n  END AS alias\nFROM table_name;',desc:'SQL 中实现 if/else。可用于 SELECT, WHERE, ORDER BY, GROUP BY。',tags:['基础','条件'],category:'基础语法'},
+  {kw:'NULL',title:'NULL 值处理',syntax:'SELECT *\nFROM table_name\nWHERE column IS NULL;\n-- 或 IS NOT NULL',desc:'NULL 不能用 = 比较。用 IS NULL / IS NOT NULL。COALESCE() 可替换 NULL。',tags:['基础','NULL'],category:'基础语法'},
+  {kw:'GROUP BY',title:'GROUP BY — 分组聚合',syntax:'SELECT column, COUNT(*), SUM(amount)\nFROM table_name\nGROUP BY column;',desc:'按指定列分组，对每组应用聚合函数。非聚合列必须在 GROUP BY 中。',tags:['聚合','分组','核心'],category:'聚合分析'},
+  {kw:'HAVING',title:'HAVING — 聚合后过滤',syntax:'SELECT column, SUM(amount) AS total\nFROM table_name\nGROUP BY column\nHAVING SUM(amount) > 1000;',desc:'过滤聚合后的结果。WHERE 在聚合前，HAVING 在聚合后。',tags:['聚合','过滤','核心'],category:'聚合分析'},
+  {kw:'COUNT',title:'COUNT — 计数',syntax:'SELECT COUNT(*),\n       COUNT(column),\n       COUNT(DISTINCT column)\nFROM table_name;',desc:'COUNT(*) 所有行，COUNT(col) 非 NULL，COUNT(DISTINCT col) 唯一值。',tags:['聚合','函数'],category:'聚合分析'},
+  {kw:'SUM',title:'SUM / AVG / MAX / MIN',syntax:'SELECT SUM(amount) AS total,\n       AVG(amount) AS avg,\n       MAX(amount), MIN(amount)\nFROM table_name;',desc:'聚合函数：SUM 求和，AVG 均值，MAX 最大，MIN 最小。忽略 NULL。',tags:['聚合','函数'],category:'聚合分析'},
+  {kw:'JOIN',title:'JOIN — 连接表',syntax:'SELECT *\nFROM table_a a\nJOIN table_b b ON a.key = b.key;',desc:'INNER JOIN：只返回两表都匹配的行。最常用的连接方式。',tags:['连接','核心'],category:'多表关联'},
+  {kw:'LEFT JOIN',title:'LEFT JOIN — 左连接',syntax:'SELECT *\nFROM table_a a\nLEFT JOIN table_b b ON a.key = b.key;',desc:'返回左表所有行，右表无匹配填 NULL。保留主表全部记录。',tags:['连接','核心'],category:'多表关联'},
+  {kw:'CTE',title:'CTE (WITH) — 公用表表达式',syntax:'WITH temp_name AS (\n  SELECT * FROM table_name\n  WHERE condition\n)\nSELECT * FROM temp_name;',desc:'定义临时结果集，提高复杂查询可读性。可链式定义多个 CTE。',tags:['连接','进阶','可读性'],category:'多表关联'},
+  {kw:'UNION',title:'UNION / UNION ALL',syntax:'SELECT column FROM table_a\nUNION\nSELECT column FROM table_b;',desc:'合并两个查询结果。UNION 去重，UNION ALL 保留重复行。',tags:['连接','集合'],category:'多表关联'},
+  {kw:'EXISTS',title:'EXISTS / NOT EXISTS',syntax:'SELECT * FROM table_a a\nWHERE EXISTS (\n  SELECT 1 FROM table_b b\n  WHERE b.key = a.key\n);',desc:'检查子查询是否返回行。比 IN 更高效。常用于反连接。',tags:['连接','进阶','性能'],category:'多表关联'},
+  {kw:'ROW_NUMBER',title:'ROW_NUMBER() — 行号',syntax:'SELECT *,\n  ROW_NUMBER() OVER(\n    PARTITION BY category\n    ORDER BY amount DESC\n  ) AS rn\nFROM table_name;',desc:'为每行分配唯一序号。PARTITION BY 分组重置，ORDER BY 定义排序。',tags:['窗口函数','排行','核心'],category:'窗口函数'},
+  {kw:'RANK',title:'RANK() / DENSE_RANK()',syntax:'SELECT *,\n  RANK() OVER(\n    PARTITION BY category\n    ORDER BY amount DESC\n  ) AS rk\nFROM table_name;',desc:'RANK 有间隔 (1,1,3)，DENSE_RANK 无间隔 (1,1,2)。',tags:['窗口函数','排行'],category:'窗口函数'},
+  {kw:'LAG',title:'LAG() / LEAD() — 前后行',syntax:'SELECT *,\n  LAG(column, 1) OVER(ORDER BY dt) AS prev,\n  LEAD(column, 1) OVER(ORDER BY dt) AS next\nFROM table_name;',desc:'LAG 取前一行，LEAD 取后一行。常用于环比、同比计算。',tags:['窗口函数','环比','核心'],category:'窗口函数'},
+  {kw:'SUM OVER',title:'SUM() OVER — 累计/移动',syntax:'SELECT dt, amount,\n  SUM(amount) OVER(\n    ORDER BY dt\n    ROWS BETWEEN UNBOUNDED PRECEDING\n      AND CURRENT ROW\n  ) AS cumulative\nFROM table_name;',desc:'窗口聚合：累计求和、移动平均。ROWS BETWEEN 定义窗口范围。',tags:['窗口函数','累计'],category:'窗口函数'},
+  {kw:'NTILE',title:'NTILE() — 分桶',syntax:'SELECT *,\n  NTILE(4) OVER(ORDER BY amount DESC) AS quartile\nFROM table_name;',desc:'将结果均匀分配到 N 个桶。常用于分位数、分层分析。',tags:['窗口函数','分层'],category:'窗口函数'},
+  {kw:'移动平均',title:'移动平均 — 平滑趋势',syntax:'SELECT dt, value,\n  AVG(value) OVER(\n    ORDER BY dt\n    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW\n  ) AS ma_7d\nFROM table_name;',desc:'滚动窗口内平均值。7 日移动平均常用于平滑 DAU、GMV 等短期波动。',tags:['窗口函数','分析'],category:'窗口函数'},
+  {kw:'留存',title:'次日留存 — 用户回访',syntax:"WITH base AS (\n  SELECT DISTINCT user_id, login_date\n  FROM logins\n)\nSELECT b.login_date,\n  COUNT(*) AS users,\n  COUNT(n.user_id) AS retained,\n  COUNT(n.user_id)*1.0/COUNT(*) AS d1\nFROM base b\nLEFT JOIN base n\n  ON b.user_id=n.user_id\n  AND n.login_date=b.login_date+1\nGROUP BY b.login_date;",desc:'当天活跃用户 LEFT JOIN 次日，匹配即留存。核心是时间偏移自连接。',tags:['业务','留存','核心'],category:'业务实战'},
+  {kw:'漏斗',title:'转化漏斗 — 用户路径',syntax:"SELECT\n  COUNT(DISTINCT CASE WHEN step='view' THEN user_id END) AS view_uv,\n  COUNT(DISTINCT CASE WHEN step='cart' THEN user_id END) AS cart_uv,\n  COUNT(DISTINCT CASE WHEN step='pay' THEN user_id END) AS pay_uv,\n  COUNT(DISTINCT CASE WHEN step='pay' THEN user_id END)*1.0/\n    NULLIF(COUNT(DISTINCT CASE WHEN step='view' THEN user_id END),0) AS rate\nFROM events;",desc:'COUNT(DISTINCT CASE WHEN) 计算各环节独立用户数，相除得转化率。',tags:['业务','漏斗','核心'],category:'业务实战'},
+  {kw:'RFM',title:'RFM 用户分层',syntax:"SELECT user_id,\n  MAX(order_date) AS recency,\n  COUNT(DISTINCT order_id) AS frequency,\n  SUM(amount) AS monetary\nFROM orders WHERE status='paid'\nGROUP BY user_id;",desc:'R 最近购买、F 频率、M 金额。用户运营的基础分层模型。',tags:['业务','分层','用户'],category:'业务实战'},
+  {kw:'A/B',title:'A/B 实验分析',syntax:"SELECT group_name,\n  COUNT(DISTINCT e.user_id) AS users,\n  COUNT(DISTINCT CASE WHEN o.status='paid' THEN e.user_id END)*1.0/\n    COUNT(DISTINCT e.user_id) AS pay_rate\nFROM experiment_users e\nLEFT JOIN orders o ON e.user_id=o.user_id\nGROUP BY group_name;",desc:'LEFT JOIN 保留所有实验用户，按组统计转化率。注意样本均衡性。',tags:['业务','实验'],category:'业务实战'},
+  {kw:'环比',title:'环比/同比 — 增长率',syntax:'SELECT dt, value,\n  LAG(value) OVER(ORDER BY dt) AS prev,\n  (value-LAG(value) OVER(ORDER BY dt))*1.0/\n    NULLIF(LAG(value) OVER(ORDER BY dt),0) AS growth\nFROM daily_metrics;',desc:'LAG 取上期值算环比。同比用 LAG(value,12) OVER(ORDER BY month)。',tags:['业务','指标','核心'],category:'业务实战'},
+  {kw:'索引',title:'索引设计原则',syntax:'CREATE INDEX idx_name\nON table_name(eq_col, range_col DESC);',desc:'等值过滤列在前，范围/排序列在后。避免在索引列上使用函数。',tags:['性能','索引'],category:'性能优化'},
+  {kw:'EXPLAIN',title:'EXPLAIN — 执行计划',syntax:'EXPLAIN\nSELECT * FROM table_name\nWHERE condition;',desc:'查看执行计划：是否使用索引、扫描行数、连接方式。优化第一步。',tags:['性能','调试'],category:'性能优化'},
+  {kw:'去重',title:'数据去重 — 保留最新',syntax:'WITH ranked AS (\n  SELECT *,\n    ROW_NUMBER() OVER(\n      PARTITION BY key\n      ORDER BY updated_at DESC\n    ) AS rn\n  FROM table_name\n)\nSELECT * FROM ranked WHERE rn=1;',desc:'按业务键分区，时间倒序编号，取 rn=1 保留最新。ETL 最常用模式。',tags:['性能','ETL','核心'],category:'性能优化'},
+  {kw:'连续登录',title:'连续 N 天 — 面试经典',syntax:"WITH d AS(\n  SELECT DISTINCT user_id, login_date FROM logins\n), r AS(\n  SELECT user_id, login_date,\n    login_date - ROW_NUMBER() OVER(\n      PARTITION BY user_id ORDER BY login_date\n    ) * INTERVAL '1 day' AS grp\n  FROM d\n)\nSELECT user_id FROM r\nGROUP BY user_id, grp\nHAVING COUNT(*) >= 3;",desc:'日期减行号形成连续分组标识，同 grp 内的日期连续。经典面试题。',tags:['面试','技巧','核心'],category:'业务实战'},
+];
+
+function searchSQL(query){
+  if(!query||query.trim().length<1) return [];
+  const q=query.toLowerCase();
+  return sqlKnowledge.filter(item=>
+    item.kw.toLowerCase().includes(q)||item.title.toLowerCase().includes(q)||
+    item.desc.toLowerCase().includes(q)||item.tags.some(t=>t.toLowerCase().includes(q))||
+    item.category.toLowerCase().includes(q)||item.syntax.toLowerCase().includes(q));
+}
+function renderSearchResults(query){
+  const c=document.getElementById('searchResults'),h=document.getElementById('searchHint');
+  if(!query||query.trim().length<1){ c.classList.remove('active');c.innerHTML='';h.textContent='48 条语法';return; }
+  const r=searchSQL(query); h.textContent=r.length+' 条';
+  if(!r.length){ c.innerHTML='<div class="no-results">无匹配。试试 "JOIN"、"窗口函数"、"留存"…</div>'; }
+  else { c.innerHTML=r.map(r=>`<div class="search-result-item" onclick="navigator.clipboard.writeText(\`${r.syntax.replace(/`/g,'\\`')}\`);toast('已复制')"><div class="sr-title">${r.title}</div><div class="sr-syntax">${r.syntax.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div><div class="sr-desc">${r.desc}</div><div class="sr-tags">${r.tags.map(t=>`<span class="sr-tag">${t}</span>`).join('')}<span class="sr-tag">${r.category}</span></div></div>`).join(''); }
+  c.classList.add('active');
+}
+
+// ============================================================
+// DATA
+// ============================================================
+const industries=[
+  {id:'internet',name:'互联网 / 产品增长',emoji:'💻',character:'增长黑客',titles:['数据小白','查询学徒','增长实习生','数据分析师','增长负责人','增长黑客'],stories:['从 SELECT * 开始认识数据世界。','学会过滤、排序和去重，看得懂埋点日志。','JOIN 和 CTE 进入舒适区，DAU 和漏斗分析上手。','窗口函数熟练，A/B 实验和留存全搞定。','领导增长看板，用 SQL 诊断业务健康度。','每个 SQL 都驱动着百万级产品增长。']},
+  {id:'ecom',name:'电商 / 零售交易',emoji:'🛒',character:'电商运营官',titles:['店铺小白','订单专员','运营助理','电商分析师','运营专家','电商运营官'],stories:['从一张订单表开始理解电商数据。','能查订单看 GMV，日常数据心中有数。','复购率、客单价、品类排行全会。','商品分层、用户分群，SQL 驱动选品。','从供应链到用户生命周期，全链路视野。','每个 SQL 都可能影响千万 GMV。']},
+  {id:'finance',name:'金融 / 支付风控',emoji:'🛡️',character:'风控分析师',titles:['风控新手','规则专员','风控助理','风控分析师','高级风控师','风控大师'],stories:['理解交易流水和风控基础概念。','能识别异常交易，写基础风控规则。','逾期率、坏账率、退款异常全拿下。','追踪交易链路，优化规则命中率。','设计风控模型特征，预判风险。','你的 SQL 守护百万用户资金安全。']},
+  {id:'logistics',name:'物流 / 供应链',emoji:'🚚',character:'供应链专家',titles:['调度新手','仓库专员','运输协调员','供应链分析师','供应链架构师','供应链专家'],stories:['从运单表出发理解物流数据。','统计时效、找异常件，数据渐清晰。','线路效率、承运商对比全会。','P95 时效、履约成本，核心指标。','预测库存、优化路线，数据驱动。','你的查询支撑全国供应链网络。']},
+  {id:'content',name:'内容 / 游戏运营',emoji:'🎮',character:'内容创作官',titles:['内容新手','编辑助理','运营小编','内容运营官','爆款创作者','内容创作官'],stories:['从曝光表开始了解内容传播。','统计 CTR、完播率，数据有感觉。','用户分层、偏好分析有数据支撑。','付费转化、留存，内容变现闭环。','你的数据打造一个又一个爆款。','你的 SQL 让内容生态持续繁荣。']},
+  {id:'saas',name:'SaaS / B2B 客户成功',emoji:'☁️',character:'客户成功经理',titles:['支持新人','Onboarding','CS 助理','客户成功经理','资深 CSM','客户成功 VP'],stories:['从 MRR 和订阅表开始理解 SaaS。','追踪活跃度、功能采纳，建立健康度。','流失预警、续费预测，数据指导运营。','NRR、LTV、CAC，全指标体系。','客户分层模型，数据驱动成功。','你的查询影响数千客户留存。']},
+  {id:'edu',name:'教育 / 在线学习',emoji:'📚',character:'学习发展顾问',titles:['教务新手','学习督导','教学助理','学习分析师','课程设计师','学习发展顾问'],stories:['从学生和课程表认识教育数据。','统计完课率、出勤率，一目了然。','成绩分布、学习路径分析全会。','试听到付费转化漏斗，教育闭环。','个性化学习路径，因材施教。','你的分析驱动数万学生成长。']},
+  {id:'local',name:'本地生活 / O2O',emoji:'📍',character:'城市运营专家',titles:['门店新手','运营专员','区域助理','城市运营师','区域负责人','城市运营专家'],stories:['从门店和券表开始理解 O2O。','核销率、门店排行，上手本地数据。','城市 GMV、时段分布全会。','异常诊断、新店冷启动全会。','多城市数据中台，SQL 驱动作战。','每个门店增长都与你有关。']}
+];
+
+const stages=[
+  {id:'s1',title:'阶段 1｜SQL 基础语法',short:'基础语法',level:'简单',hours:8},
+  {id:'s2',title:'阶段 2｜聚合与指标口径',short:'聚合指标',level:'简单-中等',hours:12},
+  {id:'s3',title:'阶段 3｜JOIN、子查询与 CTE',short:'多表关联',level:'中等',hours:16},
+  {id:'s4',title:'阶段 4｜窗口函数与分析模型',short:'窗口函数',level:'中等-困难',hours:16},
+  {id:'s5',title:'阶段 5｜数据建模与性能',short:'建模性能',level:'困难',hours:14},
+  {id:'s6',title:'阶段 6｜业务项目与面试综合',short:'综合实战',level:'项目',hours:18}
+];
+
+const exercises=[
+  {id:'s1e1',stage:'s1',difficulty:'简单',title:'查询指定字段',schema:'users(user_id, name, city, signup_date, status)',task:'查询 user_id、name、city，只保留 status = active。',hint:'SELECT + WHERE',solution:"SELECT user_id, name, city\nFROM users\nWHERE status = 'active';",kw:['select','from users','where','status']},
+  {id:'s1e2',stage:'s1',difficulty:'简单',title:'时间条件过滤',schema:'orders(order_id, user_id, order_date, amount, status)',task:'查询 2026 年 1 月下单且金额 > 100 的订单。',hint:'日期用 >= 和 < 半开区间。',solution:"SELECT order_id, user_id, amount\nFROM orders\nWHERE order_date >= '2026-01-01'\n  AND order_date < '2026-02-01'\n  AND amount > 100;",kw:['select','from orders','where','order_date','amount']},
+  {id:'s1e3',stage:'s1',difficulty:'简单',title:'去重城市',schema:'users(user_id, city, signup_date)',task:'查询所有城市，每个只出现一次。',hint:'DISTINCT',solution:'SELECT DISTINCT city\nFROM users\nWHERE city IS NOT NULL;',kw:['distinct','city','from users']},
+  {id:'s1e4',stage:'s1',difficulty:'简单',title:'模糊匹配邮箱',schema:'users(user_id, email, created_at)',task:'查询邮箱以 @company.com 结尾的用户。',hint:'LIKE + %',solution:"SELECT user_id, email\nFROM users\nWHERE email LIKE '%@company.com';",kw:['like','email','from users','where']},
+  {id:'s1e5',stage:'s1',difficulty:'简单',title:'CASE 年龄段',schema:'users(user_id, age, city)',task:'按 age 分 18-24、25-34、35+、未知 四类。',hint:'CASE WHEN ... THEN ... ELSE ... END',solution:"SELECT user_id,\n  CASE WHEN age IS NULL THEN '未知'\n    WHEN age BETWEEN 18 AND 24 THEN '18-24'\n    WHEN age BETWEEN 25 AND 34 THEN '25-34'\n    ELSE '35+' END AS age_group\nFROM users;",kw:['case','when','then','end','age_group']},
+  {id:'s1e6',stage:'s1',difficulty:'简单',title:'价格区间筛选',schema:'products(product_id, category, price, is_on_sale)',task:'查询价格 50-200 且正在售卖的商品。',hint:'BETWEEN',solution:'SELECT product_id, category, price\nFROM products\nWHERE price BETWEEN 50 AND 200\n  AND is_on_sale = 1;',kw:['between','from products','where','price']},
+  {id:'s1e7',stage:'s1',difficulty:'简单',title:'NULL 值处理',schema:'users(user_id, phone, email)',task:'查询没有手机号但绑定了邮箱的用户。',hint:'IS NULL / IS NOT NULL',solution:'SELECT user_id, email\nFROM users\nWHERE phone IS NULL\n  AND email IS NOT NULL;',kw:['is null','is not null','from users']},
+  {id:'s1e8',stage:'s1',difficulty:'简单',title:'Top 10 订单',schema:'orders(order_id, user_id, amount, order_date)',task:'查询金额最高的 10 笔订单。',hint:'ORDER BY ... DESC LIMIT 10',solution:'SELECT order_id, user_id, amount\nFROM orders\nORDER BY amount DESC\nLIMIT 10;',kw:['order by','desc','limit','from orders']},
+  {id:'s2e1',stage:'s2',difficulty:'简单',title:'每日订单量',schema:'orders(order_id, order_date, status)',task:'统计每天成功订单数。',hint:'GROUP BY + COUNT',solution:"SELECT order_date, COUNT(*) AS order_cnt\nFROM orders\nWHERE status = 'paid'\nGROUP BY order_date;",kw:['count','group by','from orders','status']},
+  {id:'s2e2',stage:'s2',difficulty:'简单',title:'城市 GMV',schema:'orders(order_id, user_id, amount, status)\nusers(user_id, city)',task:'统计各城市支付成功的 GMV。',hint:'JOIN + SUM + GROUP BY',solution:"SELECT u.city, SUM(o.amount) AS gmv\nFROM orders o\nJOIN users u ON o.user_id=u.user_id\nWHERE o.status='paid'\nGROUP BY u.city;",kw:['sum','join','group by','city','amount']},
+  {id:'s2e3',stage:'s2',difficulty:'简单',title:'高价值品类',schema:'orders(order_id, product_id, amount, status)\nproducts(product_id, category)',task:'GMV 超过 100000 的品类。',hint:'聚合后用 HAVING',solution:"SELECT p.category, SUM(o.amount) AS gmv\nFROM orders o JOIN products p ON o.product_id=p.product_id\nWHERE o.status='paid'\nGROUP BY p.category\nHAVING SUM(o.amount)>100000;",kw:['having','sum','group by','join']},
+  {id:'s2e4',stage:'s2',difficulty:'中等',title:'支付转化率',schema:'events(user_id, event_date, event_name)',task:'按天统计 visit 和 pay 的 UV 和转化率。',hint:'COUNT(DISTINCT CASE WHEN ...)',solution:"SELECT event_date,\n  COUNT(DISTINCT CASE WHEN event_name='visit' THEN user_id END) visit_uv,\n  COUNT(DISTINCT CASE WHEN event_name='pay' THEN user_id END) pay_uv,\n  COUNT(DISTINCT CASE WHEN event_name='pay' THEN user_id END)*1.0/\n  NULLIF(COUNT(DISTINCT CASE WHEN event_name='visit' THEN user_id END),0) rate\nFROM events GROUP BY event_date;",kw:['count','distinct','case','group by','nullif']},
+  {id:'s2e5',stage:'s2',difficulty:'中等',title:'客单价 AOV',schema:'orders(order_id, user_id, amount, status, order_date)',task:'按月统计 GMV、订单数和客单价。',hint:'DATE_TRUNC + SUM + COUNT',solution:"SELECT DATE_TRUNC('month',order_date) m,\n  SUM(amount) gmv, COUNT(DISTINCT order_id) orders,\n  SUM(amount)*1.0/COUNT(DISTINCT order_id) aov\nFROM orders WHERE status='paid'\nGROUP BY DATE_TRUNC('month',order_date);",kw:['sum','count','group by','date_trunc','aov']},
+  {id:'s2e6',stage:'s2',difficulty:'中等',title:'复购用户数',schema:'orders(order_id, user_id, order_date, status)',task:'统计每月下单 ≥2 次的复购用户数。',hint:'先按月+用户聚合，再外层筛选',solution:"WITH um AS(\n  SELECT DATE_TRUNC('month',order_date) m, user_id, COUNT(*) cnt\n  FROM orders WHERE status='paid'\n  GROUP BY DATE_TRUNC('month',order_date), user_id)\nSELECT m, COUNT(*) repurchase FROM um WHERE cnt>=2 GROUP BY m;",kw:['with','group by','count','where','order_cnt']},
+  {id:'s2e7',stage:'s2',difficulty:'中等',title:'平均履约时长',schema:'orders(order_id, paid_at, delivered_at, status)',task:'统计已送达订单支付到送达的平均小时数。',hint:'EXTRACT(EPOCH FROM ...)/3600',solution:"SELECT AVG(EXTRACT(EPOCH FROM(delivered_at-paid_at))/3600) avg_h\nFROM orders\nWHERE status='delivered' AND paid_at IS NOT NULL;",kw:['avg','delivered_at','paid_at','where']},
+  {id:'s2e8',stage:'s2',difficulty:'中等',title:'分层收入贡献',schema:'orders(order_id, user_id, amount, status)',task:'按累计消费分 0-100、100-1000、1000+ 三层。',hint:'先按用户 SUM，再 CASE 分层',solution:"WITH ug AS(SELECT user_id, SUM(amount) amt FROM orders WHERE status='paid' GROUP BY user_id)\nSELECT CASE WHEN amt<100 THEN '0-100' WHEN amt<1000 THEN '100-1000' ELSE '1000+' END tier,\n  COUNT(*) users, SUM(amt) gmv FROM ug GROUP BY tier;",kw:['with','case','sum','count','group by']},
+  {id:'s3e1',stage:'s3',difficulty:'中等',title:'用户订单明细',schema:'users(user_id, city)\norders(order_id, user_id, amount, status)',task:'输出每笔支付订单的 order_id、amount、city。',hint:'INNER JOIN',solution:"SELECT o.order_id, o.amount, u.city\nFROM orders o JOIN users u ON o.user_id=u.user_id\nWHERE o.status='paid';",kw:['join','on','users','orders','where']},
+  {id:'s3e2',stage:'s3',difficulty:'中等',title:'从未下单用户',schema:'users(user_id, name)\norders(order_id, user_id, status)',task:'注册后从未产生订单的用户。',hint:'LEFT JOIN + IS NULL',solution:'SELECT u.user_id, u.name\nFROM users u LEFT JOIN orders o ON u.user_id=o.user_id\nWHERE o.order_id IS NULL;',kw:['left join','is null','users','orders']},
+  {id:'s3e3',stage:'s3',difficulty:'中等',title:'每用户最后一笔订单',schema:'orders(order_id, user_id, order_date, amount)',task:'查每个用户最后一笔订单。',hint:'CTE + MAX + JOIN',solution:'WITH lo AS(SELECT user_id, MAX(order_date) d FROM orders GROUP BY user_id)\nSELECT o.user_id, o.order_id, o.amount\nFROM orders o JOIN lo l ON o.user_id=l.user_id AND o.order_date=l.d;',kw:['with','max','group by','join']},
+  {id:'s3e4',stage:'s3',difficulty:'中等',title:'活跃用户 CTE',schema:'events(user_id, event_date, event_name)',task:'定义近 7 天活跃用户，统计数量。',hint:'CTE + DISTINCT + INTERVAL',solution:"WITH au AS(SELECT DISTINCT user_id FROM events\n  WHERE event_date>=CURRENT_DATE-INTERVAL'7 day')\nSELECT COUNT(*) FROM au;",kw:['with','distinct','count','current_date']},
+  {id:'s3e5',stage:'s3',difficulty:'中等',title:'员工与上级自连接',schema:'employees(emp_id, emp_name, manager_id)',task:'输出员工姓名及直属上级姓名。',hint:'Self JOIN',solution:'SELECT e.emp_name emp, m.emp_name mgr\nFROM employees e LEFT JOIN employees m ON e.manager_id=m.emp_id;',kw:['left join','employees','manager_id']},
+  {id:'s3e6',stage:'s3',difficulty:'困难',title:'支付未发货订单',schema:'orders(order_id, user_id, status)\nshipments(shipment_id, order_id)',task:'已支付但无发货记录的订单。',hint:'LEFT JOIN + IS NULL (Anti Join)',solution:"SELECT o.order_id, o.user_id\nFROM orders o LEFT JOIN shipments s ON o.order_id=s.order_id\nWHERE o.status='paid' AND s.shipment_id IS NULL;",kw:['left join','is null','shipments','status']},
+  {id:'s3e7',stage:'s3',difficulty:'困难',title:'合并渠道用户',schema:'app_users(user_id)\nweb_users(user_id)',task:'合并两渠道用户，去重。',hint:'UNION',solution:'SELECT user_id FROM app_users\nUNION\nSELECT user_id FROM web_users;',kw:['union','select','user_id']},
+  {id:'s3e8',stage:'s3',difficulty:'困难',title:'异常退款用户',schema:'orders(order_id, user_id, amount, status)\nrefunds(refund_id, order_id, refund_amount, refund_status)',task:'退款成功金额 > 订单金额的异常。',hint:'JOIN + 比较',solution:"SELECT o.user_id, o.order_id, o.amount, r.refund_amount\nFROM orders o JOIN refunds r ON o.order_id=r.order_id\nWHERE r.refund_status='success' AND r.refund_amount>o.amount;",kw:['join','refund','where','>']},
+  {id:'s4e1',stage:'s4',difficulty:'中等',title:'品类销量前三',schema:'order_items(order_id, product_id, category, quantity)',task:'每 category 取销量 Top 3。',hint:'ROW_NUMBER + PARTITION BY',solution:'WITH ps AS(SELECT category,product_id,SUM(quantity) qty FROM order_items GROUP BY category,product_id)\nSELECT * FROM(SELECT *,ROW_NUMBER()OVER(PARTITION BY category ORDER BY qty DESC) rn FROM ps) t WHERE rn<=3;',kw:['row_number','over','partition by','order by','rn']},
+  {id:'s4e2',stage:'s4',difficulty:'中等',title:'城市 GMV 排名',schema:'city_gmv(dt, city, gmv)',task:'每天各城市 GMV 排名，允许并列。',hint:'RANK()',solution:'SELECT *,RANK()OVER(PARTITION BY dt ORDER BY gmv DESC) rk FROM city_gmv;',kw:['rank','over','partition by','order by']},
+  {id:'s4e3',stage:'s4',difficulty:'困难',title:'日 GMV 环比',schema:'daily_metrics(dt, gmv)',task:'每日 GMV 与前一日差值和变化率。',hint:'LAG()',solution:'SELECT dt,gmv,\n  LAG(gmv)OVER(ORDER BY dt) prev,\n  gmv-LAG(gmv)OVER(ORDER BY dt) diff,\n  (gmv-LAG(gmv)OVER(ORDER BY dt))*1.0/NULLIF(LAG(gmv)OVER(ORDER BY dt),0) rate\nFROM daily_metrics;',kw:['lag','over','order by','nullif']},
+  {id:'s4e4',stage:'s4',difficulty:'中等',title:'累计 GMV',schema:'daily_metrics(dt, gmv)',task:'计算从月初到当天的累计 GMV。',hint:'SUM OVER ROWS BETWEEN',solution:'SELECT dt,gmv,SUM(gmv)OVER(ORDER BY dt ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) cum FROM daily_metrics;',kw:['sum','over','rows between','unbounded preceding']},
+  {id:'s4e5',stage:'s4',difficulty:'困难',title:'用户消费四分位',schema:'user_gmv(user_id, total_gmv)',task:'按消费金额分 4 组。',hint:'NTILE(4)',solution:'SELECT *,NTILE(4)OVER(ORDER BY total_gmv DESC) q FROM user_gmv;',kw:['ntile','over','order by']},
+  {id:'s4e6',stage:'s4',difficulty:'困难',title:'7 日移动平均',schema:'daily_metrics(dt, dau)',task:'DAU 的 7 日移动平均。',hint:'ROWS BETWEEN 6 PRECEDING',solution:'SELECT dt,dau,AVG(dau)OVER(ORDER BY dt ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) ma7 FROM daily_metrics;',kw:['avg','over','6 preceding','current row']},
+  {id:'s4e7',stage:'s4',difficulty:'困难',title:'首次购买渠道',schema:'orders(order_id, user_id, order_date, channel)',task:'每个用户首次购买的渠道。',hint:'ROW_NUMBER = 1',solution:'WITH r AS(SELECT *,ROW_NUMBER()OVER(PARTITION BY user_id ORDER BY order_date) rn FROM orders)\nSELECT user_id,channel FROM r WHERE rn=1;',kw:['row_number','partition by','order by','where rn']},
+  {id:'s4e8',stage:'s4',difficulty:'困难',title:'次日留存',schema:'logins(user_id, login_date)',task:'每天登录用户的次日留存率。',hint:'自连接 + 日期偏移',solution:"WITH b AS(SELECT DISTINCT user_id,login_date FROM logins)\nSELECT b.login_date,COUNT(*) u,COUNT(n.user_id) r,\n  COUNT(n.user_id)*1.0/COUNT(*) d1\nFROM b LEFT JOIN b n ON b.user_id=n.user_id AND n.login_date=b.login_date+1\nGROUP BY b.login_date;",kw:['left join','interval','count','group by','retention']},
+  {id:'s5e1',stage:'s5',difficulty:'困难',title:'设计复合索引',schema:'orders(order_id, user_id, status, order_date, amount)',task:'WHERE status=paid AND order_date>=? ORDER BY order_date DESC',hint:'等值在前，范围/排序在后',solution:'CREATE INDEX idx ON orders(status, order_date DESC);',kw:['create index','orders','status','order_date']},
+  {id:'s5e2',stage:'s5',difficulty:'困难',title:'分区裁剪',schema:'events PARTITION BY event_date',task:'查近 7 天 click，确保利用分区。',hint:'WHERE 直接约束分区列',solution:"SELECT event_date,COUNT(*) FROM events\nWHERE event_date>=CURRENT_DATE-7 AND event_name='click'\nGROUP BY event_date;",kw:['where','event_date','interval','group by']},
+  {id:'s5e3',stage:'s5',difficulty:'困难',title:'订单去重',schema:'raw_orders(order_id, user_id, amount, updated_at)',task:'保留 updated_at 最新的一条。',hint:'ROW_NUMBER + ORDER BY DESC',solution:'WITH r AS(SELECT *,ROW_NUMBER()OVER(PARTITION BY order_id ORDER BY updated_at DESC) rn FROM raw_orders)\nSELECT * FROM r WHERE rn=1;',kw:['row_number','partition by','order by','where rn']},
+  {id:'s5e4',stage:'s5',difficulty:'困难',title:'增量 ETL',schema:'source_orders(order_id, amount, updated_at)\ntarget_orders(order_id, amount, updated_at)',task:'抽取 updated_at 大于 target 最大时间的记录。',hint:'子查询 MAX',solution:"SELECT * FROM source_orders\nWHERE updated_at>(SELECT COALESCE(MAX(updated_at),TIMESTAMP'1970-01-01') FROM target_orders);",kw:['max','updated_at','source_orders','target_orders']},
+  {id:'s5e5',stage:'s5',difficulty:'困难',title:'星型模型',schema:'orders, users, products, stores',task:'设计 1 事实表 + 3+ 维表。',hint:'事实表=事件，维表=属性',solution:'fact_order_items\n-- dim_user, dim_product, dim_store, dim_date',kw:['fact','dim','order','user','product']},
+  {id:'s5e6',stage:'s5',difficulty:'困难',title:'数据质量检查',schema:'orders(order_id, user_id, amount, paid_at, status)',task:'检查负金额、已支付无时间、重复 ID。',hint:'UNION ALL',solution:"SELECT 'neg' t,COUNT(*) FROM orders WHERE amount<0\nUNION ALL SELECT 'notime',COUNT(*) FROM orders WHERE status='paid' AND paid_at IS NULL\nUNION ALL SELECT 'dup',COUNT(*) FROM(SELECT order_id FROM orders GROUP BY order_id HAVING COUNT(*)>1)t;",kw:['union all','count','having','is null']},
+  {id:'s5e7',stage:'s5',difficulty:'困难',title:'慢查询改写',schema:'events(event_id, user_id, event_time, event_name)',task:"WHERE DATE(event_time)='2026-01-01' 改写。",hint:'避免列上套函数',solution:"SELECT * FROM events\nWHERE event_time>=TIMESTAMP'2026-01-01'\n  AND event_time<TIMESTAMP'2026-01-02';",kw:['event_time','>=','<','timestamp']},
+  {id:'s5e8',stage:'s5',difficulty:'困难',title:'SCD2 拉链表',schema:'dim_user_history(user_id, city, valid_from, valid_to, is_current)',task:'查用户在 2026-03-15 当天的城市。',hint:'时间区间判断',solution:"SELECT user_id,city FROM dim_user_history\nWHERE user_id=1001\n  AND valid_from<=DATE'2026-03-15'\n  AND (valid_to>DATE'2026-03-15' OR valid_to IS NULL);",kw:['valid_from','valid_to','is null','where']},
+  {id:'s6e1',stage:'s6',difficulty:'项目',title:'注册到支付漏斗',schema:'events(user_id, event_time, event_name)',task:'register→view→cart→pay 各步 UV。',hint:'MIN(注册日期) + MAX(各步标记)',solution:"WITH ue AS(SELECT user_id,\n  MIN(CASE WHEN event_name='register' THEN DATE(event_time) END) rd,\n  MAX(CASE WHEN event_name='view_product' THEN 1 ELSE 0 END) v,\n  MAX(CASE WHEN event_name='add_cart' THEN 1 ELSE 0 END) c,\n  MAX(CASE WHEN event_name='pay' THEN 1 ELSE 0 END) p\nFROM events GROUP BY user_id)\nSELECT rd,COUNT(*),SUM(v),SUM(c),SUM(p) FROM ue WHERE rd IS NOT NULL GROUP BY rd;",kw:['case','group by','sum','register','pay']},
+  {id:'s6e2',stage:'s6',difficulty:'项目',title:'月度留存 Cohort',schema:'users(user_id, signup_date)\norders(user_id, order_date, status)',task:'按注册月 cohort，统计 0-3 月留存。',hint:'月差函数',solution:"WITH c AS(SELECT user_id,DATE_TRUNC('month',signup_date) sm FROM users),\n  p AS(SELECT DISTINCT user_id,DATE_TRUNC('month',order_date) pm FROM orders WHERE status='paid')\nSELECT c.sm,MONTH_DIFF(p.pm,c.sm) mn,COUNT(DISTINCT c.user_id)\nFROM c JOIN p ON c.user_id=p.user_id\nWHERE MONTH_DIFF(p.pm,c.sm) BETWEEN 0 AND 3\nGROUP BY c.sm,MONTH_DIFF(p.pm,c.sm);",kw:['date_trunc','distinct','join','between','group by']},
+  {id:'s6e3',stage:'s6',difficulty:'项目',title:'A/B 实验转化',schema:'experiment_users(user_id, group_name)\norders(order_id, user_id, status)',task:'统计实验组和对照组支付转化率。',hint:'LEFT JOIN + CASE',solution:"SELECT e.group_name,\n  COUNT(DISTINCT e.user_id) u,\n  COUNT(DISTINCT CASE WHEN o.status='paid' THEN e.user_id END)*1.0/\n  COUNT(DISTINCT e.user_id) rate\nFROM experiment_users e LEFT JOIN orders o ON e.user_id=o.user_id\nGROUP BY e.group_name;",kw:['left join','case','count','group by','pay_rate']},
+  {id:'s6e4',stage:'s6',difficulty:'项目',title:'RFM 用户分层',schema:'orders(order_id, user_id, order_date, amount, status)',task:'构建 R、F、M 基础表。',hint:'MAX + COUNT + SUM',solution:"SELECT user_id,MAX(order_date) R,COUNT(DISTINCT order_id) F,SUM(amount) M\nFROM orders WHERE status='paid' GROUP BY user_id;",kw:['max','count','sum','group by']},
+  {id:'s6e5',stage:'s6',difficulty:'项目',title:'流失风险用户',schema:'users(user_id, signup_date)\norders(user_id, order_date, status)',task:'注册>90 天、近 30 天无支付、历史有支付。',hint:'EXISTS + NOT EXISTS',solution:"SELECT u.user_id FROM users u\nWHERE u.signup_date<CURRENT_DATE-90\n  AND EXISTS(SELECT 1 FROM orders o WHERE o.user_id=u.user_id AND o.status='paid')\n  AND NOT EXISTS(SELECT 1 FROM orders o WHERE o.user_id=u.user_id AND o.status='paid' AND o.order_date>=CURRENT_DATE-30);",kw:['exists','not exists','interval','orders']},
+  {id:'s6e6',stage:'s6',difficulty:'项目',title:'商家履约异常',schema:'orders(order_id, merchant_id, paid_at, delivered_at, status)',task:'近 30 天平均履约小时和超 48h 占比。',hint:'EXTRACT + CASE',solution:"SELECT merchant_id,\n  AVG(EXTRACT(EPOCH FROM(delivered_at-paid_at))/3600) avg_h,\n  SUM(CASE WHEN EXTRACT(EPOCH FROM(delivered_at-paid_at))/3600>48 THEN 1 ELSE 0 END)*1.0/COUNT(*) over_rate\nFROM orders WHERE status='delivered' AND paid_at>=CURRENT_DATE-30\nGROUP BY merchant_id;",kw:['avg','case','group by','merchant_id','interval']},
+  {id:'s6e7',stage:'s6',difficulty:'项目',title:'内容推荐 CTR',schema:'impressions(user_id, content_id, dt)\nclicks(user_id, content_id, dt)',task:'按内容统计曝光 UV、点击 UV、CTR。',hint:'LEFT JOIN 以曝光为基准',solution:'SELECT i.content_id,\n  COUNT(DISTINCT i.user_id) imp,COUNT(DISTINCT c.user_id) clk,\n  COUNT(DISTINCT c.user_id)*1.0/NULLIF(COUNT(DISTINCT i.user_id),0) ctr\nFROM impressions i LEFT JOIN clicks c ON i.user_id=c.user_id AND i.content_id=c.content_id\nGROUP BY i.content_id;',kw:['left join','count','distinct','nullif','group by']},
+  {id:'s6e8',stage:'s6',difficulty:'项目',title:'连续登录 3 天',schema:'logins(user_id, login_date)',task:'找出至少连续登录 3 天的用户。',hint:'日期 - ROW_NUMBER = 连续分组',solution:"WITH d AS(SELECT DISTINCT user_id,login_date FROM logins),\n  r AS(SELECT user_id,login_date,\n    login_date-ROW_NUMBER()OVER(PARTITION BY user_id ORDER BY login_date)*INTERVAL'1 day' grp FROM d)\nSELECT DISTINCT user_id FROM r GROUP BY user_id,grp HAVING COUNT(*)>=3;",kw:['row_number','partition by','group by','having','count']}
+];
+
+const planTemplates=[
+  {stage:'阶段 1｜基础语法',focus:['SELECT/WHERE','CASE/NULL','基础复盘'],deliver:'完成 8 道基础题',check:'45 分钟，6/8 正确'},
+  {stage:'阶段 2｜聚合指标',focus:['COUNT/SUM','GROUP/HAVING','条件聚合'],deliver:'能写 DAU、GMV、AOV',check:'5 个指标口径无歧义'},
+  {stage:'阶段 3｜多表关联',focus:['INNER/LEFT JOIN','反连接/自连接','CTE'],deliver:'完成 8 道；标注粒度',check:'避免一对多重复计数'},
+  {stage:'阶段 4｜窗口函数',focus:['ROW_NUMBER/RANK','LAG/累计','留存与连续'],deliver:'完成 8 道；总结模板',check:'Top N、环比、留存通过'},
+  {stage:'阶段 5｜性能建模',focus:['索引/分区','去重/增量','事实表/维表'],deliver:'完成 8 道；画星型模型',check:'能解释优化原因'},
+  {stage:'阶段 6｜行业项目',focus:['漏斗/留存/A-B','RFM/流失','项目交付'],deliver:'完成 1 个行业项目',check:'120 分钟综合检验'}
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let state=JSON.parse(localStorage.getItem('sqlGymV3')||'{}');
+state.done=state.done||{}; state.answers=state.answers||{}; state.stagePass=state.stagePass||{};
+state.activeIndustry=state.activeIndustry||'internet'; state.heatmapOverrides=state.heatmapOverrides||{};
+
+function save(){ localStorage.setItem('sqlGymV3',JSON.stringify(state)); }
+function $$(id){ return document.getElementById(id); }
+function esc(s){ return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function nSql(s){ return (s||'').toLowerCase().replace(/[`"\[\]]/g,'').replace(/\s+/g,' ').trim(); }
+function getAI(){ return industries.find(i=>i.id===state.activeIndustry)||industries[0]; }
+function getCS(){
+  const dc=exercises.filter(e=>state.done[e.id]).length;
+  const pct=exercises.length?Math.round(dc/exercises.length*100):0;
+  const sn=Math.max(1,Math.min(6,Math.floor(pct/17)+1));
+  const pc=Object.values(state.stagePass||{}).filter(Boolean).length;
+  const pts=dc*10+pc*80,lv=Math.max(1,Math.min(20,Math.floor(pts/120)+1));
+  const pn=(lv-1)*120,nn=lv*120,lp=Math.max(0,Math.min(100,Math.round((pts-pn)/Math.max(1,nn-pn)*100)));
+  return {doneCount:dc,passCount:pc,points:pts,level:lv,pct,stageNo:sn,levelPct:lp};
+}
+
+// ============================================================
+// RENDER FUNCTIONS
+// ============================================================
+function setAv(id,ind,stageNo){ const el=$$(id); if(el) el.innerHTML=genAvatar(ind.id,Math.max(1,Math.min(6,stageNo))); }
+
+function renderIndustryGrid(){
+  const cs=getCS();
+  $$('industryGrid').innerHTML=industries.map(ind=>{
+    const active=ind.id===state.activeIndustry, ls=ind.id===state.activeIndustry?cs.stageNo:1;
+    return `<div class="industry-card ${active?'active':''}" onclick="selectIndustry('${ind.id}')">
+      <span class="ic-emoji">${ind.emoji}</span>
+      <div class="ic-name">${ind.character}</div>
+      <div class="ic-domain">${ind.name}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderEvolution(){
+  const ind=getAI(), cs=getCS(), ls=cs.stageNo;
+  $$('evoTitle').textContent=`${ind.emoji} ${ind.character} · ${ind.name}`;
+  $$('evoStrip').innerHTML=[1,2,3,4,5,6].map(s=>{
+    const cls=s===ls?'current':s<ls?'achieved':'';
+    return `<div class="evo-stage-card ${cls}" onclick="if(${s}<${ls}) scrollToSection('exercises')">
+      <div class="evo-check">✓</div>
+      <div style="width:64px;height:64px;margin:0 auto 4px">${genAvatar(ind.id,s)}</div>
+      <div class="evo-title">${ind.titles[s-1]}</div>
+      <div class="evo-label">Lv.${s} · ${['入门','学徒','进阶','精通','专家','大师'][s-1]}</div>
+    </div>`;
+  }).join('');
+  $$('evoStory').innerHTML=`<strong>📖 ${ind.titles[ls-1]}：</strong>${ind.stories[ls-1]}`;
+  setAv('buddyAvatarMini',ind,ls); setAv('panelAvatar',ind,ls);
+}
+
+function selectIndustry(id){ state.activeIndustry=id; save(); renderIndustryGrid(); renderEvolution(); renderFloatPanel(); toast(`已切换到「${getAI().name}」`); }
+
+function renderFloatPanel(){
+  const ind=getAI(), cs=getCS();
+  $$('buddyLevel').textContent=`Lv.${cs.level}`; $$('panelName').textContent=ind.character;
+  $$('panelSubtitle').textContent=`${ind.titles[cs.stageNo-1]} · ${stages[cs.stageNo-1]?.short||'入门'}`;
+  $$('panelLv').textContent=cs.level; $$('panelPts').textContent=cs.points; $$('panelDone').textContent=cs.doneCount;
+  $$('panelFill').style.width=cs.levelPct+'%'; $$('panelSpeech').textContent=ind.stories[cs.stageNo-1]||'继续加油！';
+}
+$$('floatBuddy').addEventListener('click',()=>{ const p=$$('floatPanel'); p.classList.toggle('open'); if(p.classList.contains('open')) renderFloatPanel(); });
+$$('panelClose').addEventListener('click',()=>$$('floatPanel').classList.remove('open'));
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function getWorkload(){
+  const daily=Math.max(20,Number($$('dailyMinutes').value||60)), days=Math.min(7,Math.max(1,Number($$('daysPerWeek').value||5)));
+  const wh=+(daily*days/60).toFixed(1); let cw=wh<4?14:wh<6?12:wh<8?10:wh<12?8:6;
+  return {daily,days,weeklyHours:wh,cycleWeeks:cw,totalHours:+(wh*cw).toFixed(1),tasksPerWeek:Math.max(4,Math.round(wh*1.4))};
+}
+function renderStats(){
+  const w=getWorkload(), dc=Object.values(state.done).filter(Boolean).length, pct=Math.round(dc/exercises.length*100);
+  $$('statCards').innerHTML=[
+    ['每周时长',`${w.weeklyHours}h`,`${w.days}天 × ${w.daily}分钟`],
+    ['推荐周期',`${w.cycleWeeks}周`,`累计约 ${w.totalHours}h`],
+    ['每周题量',`${w.tasksPerWeek}题`,'含阶段 + 行业题'],
+    ['整体进度',`${dc}/${exercises.length}题`,`${pct}%`]
+  ].map(c=>`<div class="stat-card"><div class="stat-value">${c[1]}</div><div class="stat-label">${c[0]}</div><div class="stat-sub">${c[2]}</div></div>`).join('');
+  $$('progressRing').style.background=`conic-gradient(var(--text) ${pct*3.6}deg, var(--bg-hover) 0deg)`;
+  $$('progressText').textContent=`${pct}%`;
+  renderStageBars(); renderHeatmap();
+}
+function renderStageBars(){
+  $$('stageBars').innerHTML=stages.map(s=>{
+    const t=exercises.filter(e=>e.stage===s.id).length, d=exercises.filter(e=>e.stage===s.id&&state.done[e.id]).length, p=t?Math.round(d/t*100):0;
+    return `<div class="bar-row"><span>${s.short}</span><div class="bar-track" onclick="scrollToSection('exercises')"><div class="bar-fill light" style="width:${p}%"></div></div><strong>${d}/${t}</strong></div>`;
+  }).join('');
+}
+function renderHeatmap(){
+  const w=getWorkload(), names=['周一','周二','周三','周四','周五','周六','周日'];
+  $$('heatmap').innerHTML=names.map((n,i)=>{
+    const key='d'+i, ov=state.heatmapOverrides[key], on=ov!==undefined?ov:i<w.days;
+    return `<div style="border-radius:4px;min-height:52px;border:1px solid var(--border-light);padding:6px;background:${on?'var(--bg-hover)':'var(--bg)'};text-align:center;cursor:pointer;font-size:11px" onclick="toggleHeat('${key}',${i},${w.days})">
+      <b style="font-size:11px">${n}</b><br><span style="color:${on?'var(--text)':'var(--text-muted)'}">${on?'练习':'休息'}</span><br><strong style="font-size:12px">${on?w.daily+'m':'—'}</strong>
+    </div>`;
+  }).join('');
+}
+function toggleHeat(k,i,def){ const defOn=i<def,cur=state.heatmapOverrides[k]; if(cur===undefined) state.heatmapOverrides[k]=!defOn; else if(cur===!defOn) delete state.heatmapOverrides[k]; else state.heatmapOverrides[k]=!cur; save(); renderHeatmap(); }
+
+// ============================================================
+// PLAN
+// ============================================================
+function fd(d){ return d.toISOString().slice(0,10); }
+function ad(d,n){ d.setDate(d.getDate()+n); return d; }
+function generatePlan(){
+  const w=getWorkload(), ws=[.12,.16,.19,.19,.16,.18];
+  let a=ws.map(x=>Math.max(1,Math.round(x*w.cycleWeeks)));
+  const t=a.reduce((s,x)=>s+x,0); if(t>w.cycleWeeks) a[a.indexOf(Math.max(...a))]--; if(t<w.cycleWeeks) a[a.indexOf(Math.min(...a))]++;
+  const rows=[]; let wn=1;
+  a.forEach((c,si)=>{ for(let i=0;i<c;i++){ const tpl=planTemplates[si]; rows.push({week:wn++,stage:tpl.stage,focus:tpl.focus[i%tpl.focus.length],hours:w.weeklyHours,deliver:tpl.deliver,check:i===c-1?tpl.check:'复盘',stageId:stages[si].id}); }});
+  return rows;
+}
+function wr(w){ const s=new Date($$('startDate').value||new Date()), a=new Date(s); a.setDate(a.getDate()+(w-1)*7); return `${fd(a)}~${fd(ad(new Date(a),6))}`; }
+function renderPlan(){
+  $$('planTable').innerHTML='<thead><tr><th>周</th><th>日期</th><th>阶段</th><th>重点</th><th>h</th><th>产出</th><th>检验</th></tr></thead><tbody>'+generatePlan().map(r=>`<tr onclick="scrollToSection('exercises');$$('stageFilter').value='${r.stageId}';renderExercises()" style="cursor:pointer"><td>${r.week}</td><td>${wr(r.week)}</td><td>${r.stage}</td><td>${r.focus}</td><td>${r.hours}h</td><td>${r.deliver}</td><td>${r.check}</td></tr>`).join('')+'</tbody>';
+}
+
+// ============================================================
+// EXERCISES
+// ============================================================
+function renderSF(){ $$('stageFilter').innerHTML='<option value="all">全部阶段</option>'+stages.map(s=>`<option value="${s.id}">${s.title}</option>`).join(''); }
+function checkEx(id){
+  const ex=exercises.find(x=>x.id===id), sql=nSql(document.querySelector(`[data-answer="${id}"]`).value);
+  const hits=ex.kw.filter(k=>sql.includes(k)), fb=document.querySelector(`[data-feedback="${id}"]`);
+  if(!sql){ fb.textContent='先写一版 SQL。'; fb.className='feedback warn'; return; }
+  fb.textContent=hits.length===ex.kw.length?`✓ 通过 (${hits.length}/${ex.kw.length})`:`命中 ${hits.length}/${ex.kw.length}，检查: ${ex.kw.filter(k=>!hits.includes(k)).join(', ')}`;
+  fb.className=hits.length===ex.kw.length?'feedback ok':'feedback warn';
+}
+function toggleDone(id){
+  state.done[id]=!state.done[id]; const el=document.querySelector(`[data-answer="${id}"]`); if(el) state.answers[id]=el.value;
+  save(); renderAll(); renderFloatPanel(); renderEvolution();
+  toast(state.done[id]?'✅ 已标记完成':'已取消标记');
+}
+function renderExercises(){
+  const kw=nSql($$('searchInput').value), df=$$('difficultyFilter').value, sf=$$('stageFilter').value;
+  const groups=stages.filter(s=>sf==='all'||s.id===sf).map(s=>{
+    const list=exercises.filter(e=>e.stage===s.id&&(df==='all'||e.difficulty===df)&&(!kw||nSql([e.title,e.task].join(' ')).includes(kw)));
+    return {stage:s,list};
+  }).filter(g=>g.list.length);
+  if(!groups.length){ $$('stageGrid').innerHTML='<div style="padding:24px;text-align:center;color:var(--text-muted)">无匹配题目。上方搜索栏可以查语法。</div>'; return; }
+  $$('stageGrid').innerHTML=groups.map(g=>{
+    const da=exercises.filter(e=>e.stage===g.stage.id&&state.done[e.id]).length, ta=exercises.filter(e=>e.stage===g.stage.id).length;
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border-light);cursor:pointer" onclick="toggleBody('${g.stage.id}')">
+        <div><h4 style="font-size:14px">${g.stage.title}</h4><p style="font-size:12px;color:var(--text-muted)">${g.stage.level} · ${g.stage.hours}h</p></div>
+        <span style="font-size:12px;color:var(--text-muted)">${da}/${ta}</span>
+      </div>
+      <div data-body="${g.stage.id}" style="display:grid;gap:6px;margin-top:6px">
+        ${g.list.map(e=>{ const d=!!state.done[e.id],ans=esc(state.answers[e.id]||'');
+          return `<article class="exercise-card ${d?'done':''}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><h4>${d?'✅ ':''}${e.title}</h4><span style="font-size:11px;color:var(--text-muted)">${e.difficulty}</span></div>
+            <p style="margin:4px 0;font-size:13px;color:var(--text-secondary)">${e.task}</p>
+            <div class="schema">${esc(e.schema)}</div>
+            <textarea data-answer="${e.id}" placeholder="在这里写你的 SQL…">${ans}</textarea>
+            <div class="exercise-actions">
+              <button class="btn btn-primary btn-sm" onclick="checkEx('${e.id}')">检查</button>
+              <button class="btn btn-ghost btn-sm" onclick="saveAnswer('${e.id}')">保存</button>
+              <button class="btn btn-sm" style="background:transparent;color:${d?'var(--red)':'var(--text-secondary)'};border:1px solid var(--border)" onclick="toggleDone('${e.id}')">${d?'取消完成':'标记完成'}</button>
+              <span class="feedback" data-feedback="${e.id}"></span>
+            </div>
+            <details><summary>提示</summary><pre>${esc(e.hint)}</pre></details>
+            <details><summary>参考 SQL</summary><pre>${esc(e.solution)}</pre></details>
+          </article>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+function saveAnswer(id){ const el=document.querySelector(`[data-answer="${id}"]`); state.answers[id]=el.value; save(); toast('已保存'); }
+function toggleBody(id){ const b=document.querySelector(`[data-body="${id}"]`); if(b) b.style.display=b.style.display==='none'?'grid':'none'; }
+function setAllBodies(s){ document.querySelectorAll('[data-body]').forEach(x=>x.style.display=s?'grid':'none'); }
+function scrollToSection(id){ const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth'}); }
+
+function renderAll(){ renderStats(); renderPlan(); renderExercises(); }
+function toast(msg){ const t=$$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+
+window.addEventListener('scroll',()=>{ $$('scrollTop').classList.toggle('visible',window.scrollY>500); },{passive:true});
+
+// ============================================================
+// INIT
+// ============================================================
+(function init(){
+  const today=new Date(); $$('startDate').value=state.startDate||fd(today);
+  if(state.dailyMinutes) $$('dailyMinutes').value=state.dailyMinutes;
+  if(state.daysPerWeek) $$('daysPerWeek').value=state.daysPerWeek;
+  renderSF(); renderIndustryGrid(); renderEvolution(); renderAll(); renderFloatPanel();
+
+  const si=document.getElementById('sqlSearch');
+  si.addEventListener('input',()=>renderSearchResults(si.value));
+  si.addEventListener('keydown',e=>{ if(e.key==='Escape'){ si.value=''; renderSearchResults(''); si.blur(); }});
+  document.addEventListener('click',e=>{ if(!e.target.closest('.search-hero')){ renderSearchResults(''); si.value=''; }});
+  document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='k'){ e.preventDefault(); si.focus(); }});
+
+  ['dailyMinutes','daysPerWeek','startDate'].forEach(id=>$$(id).addEventListener('change',()=>{ state[id]=$$(id).value; save(); renderStats(); renderPlan(); }));
+  $$('generateBtn').addEventListener('click',()=>{ renderStats(); renderPlan(); toast('已更新'); });
+  $$('searchInput').addEventListener('input',renderExercises);
+  $$('stageFilter').addEventListener('change',renderExercises);
+  $$('difficultyFilter').addEventListener('change',renderExercises);
+  $$('expandAll').addEventListener('click',()=>setAllBodies(true));
+  $$('collapseAll').addEventListener('click',()=>setAllBodies(false));
+  $$('resetBtn').addEventListener('click',()=>{ if(confirm('重置所有进度？')){ state.done={}; state.answers={}; state.stagePass={}; state.heatmapOverrides={}; save(); renderAll(); renderEvolution(); renderFloatPanel(); toast('已重置'); }});
+  $$('exportBtn').addEventListener('click',()=>{ const b=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='sql-gym-progress.json'; a.click(); URL.revokeObjectURL(a.href); toast('已导出'); });
+})();
+</script>
+</body>
+</html>
